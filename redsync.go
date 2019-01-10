@@ -87,3 +87,10 @@ func SetGenerator(gen Generator) Option {
 		m.generator = gen
 	})
 }
+
+// SetValue set value for mutex
+func SetValue(value string) Option {
+	return OptionFunc(func(m *Mutex) {
+		m.value = value
+	})
+}
