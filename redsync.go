@@ -80,3 +80,10 @@ func SetDriftFactor(factor float64) Option {
 		m.factor = factor
 	})
 }
+
+// SetGenerator can be used to set the generator for mutex value
+func SetGenerator(gen Generator) Option {
+	return OptionFunc(func(m *Mutex) {
+		m.generator = gen
+	})
+}

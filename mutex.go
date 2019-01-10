@@ -9,6 +9,18 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+// Generator is an interface to generate value
+type Generator interface {
+	Read(p []byte) (int, error)
+}
+
+// GeneratorFunc implements generator for function
+type GeneratorFunc func(p []byte) (int, error)
+
+func (g GeneratorFunc) Read(p []byte) (int, error) {
+	return g(p)
+}
+
 // A DelayFunc is used to decide the amount of time to wait between retries.
 type DelayFunc func(tries int) time.Duration
 
@@ -29,7 +41,8 @@ type Mutex struct {
 
 	nodem sync.Mutex
 
-	pools []Pool
+	pools     []Pool
+	generator Generator
 }
 
 // Lock locks m. In case it returns an error on failure, you may retry to acquire the lock by calling this method again.
@@ -91,7 +104,11 @@ func (m *Mutex) Extend() bool {
 
 func (m *Mutex) genValue() (string, error) {
 	b := make([]byte, 32)
-	_, err := rand.Read(b)
+	gen := m.generator
+	if gen == nil {
+		gen = GeneratorFunc(rand.Read)
+	}
+	_, err := gen.Read(b)
 	if err != nil {
 		return "", err
 	}
